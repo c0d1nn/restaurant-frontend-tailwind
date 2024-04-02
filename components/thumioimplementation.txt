@@ -1,0 +1,134 @@
+import React, { useState } from 'react';
+import { links } from './consts/links'; // Import the links array from links.js
+
+const thum = require('thum.io'); // Import the thum.io library
+
+const Functions = () => {
+  const [imageUrl, setImageUrl] = useState('');
+  const [websiteName, setWebsiteName] = useState('');
+  const [websiteNameInput, setWebsiteNameInput] = useState('');
+  
+  const url = websiteNameInput;
+  const access_key = UXoDARMOztDCLw;
+  GET https://api.screenshotone.com/take?url={url}&{access_key}=<access key>
+
+
+  const handleButtonClick = async () => {
+    try {
+      const auth = '70636-codinzero'; // Your thum.io auth key
+      const url = websiteNameInput; // Use the user-provided website name
+
+      // Construct the thum.io URL
+      const thumURL = thum.getThumURL({
+        url: `https://${url}`, // Assuming the user enters a valid domain (e.g., 'google.com')
+        width: 400,
+        auth: {
+          type: 'md5',
+          secret: process.env.THUM_IO_SECRET, // Your secret key
+          keyId: 500,
+        },
+      });
+
+      // Fetch the image
+      const response = await fetch(thumURL);
+      if (response.ok) {
+        const blob = await response.blob();
+        const objectURL = URL.createObjectURL(blob);
+
+        // Update the state with the image URL
+        setImageUrl(objectURL);
+        // Update the website name state only after successful fetching
+        setWebsiteName(websiteNameInput);
+      } else {
+        alert('Error fetching thumbnail:', response.status);
+      }
+    } catch (error) {
+      alert('An error occurred:', error);
+    }
+  };
+
+  const handleWebsiteNameInputChange = (e) => {
+    setWebsiteNameInput(e.target.value);
+  };
+
+  const handleSaveButtonClick = () => {
+    // Check if imageUrl exists before attempting to save
+    if (imageUrl) {
+      // Create an anchor element with a download attribute and simulate a click event
+      const a = document.createElement('a');
+      a.href = imageUrl;
+      a.download = `${websiteName}.png`; // You can modify the file name as needed
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      console.error('No image to save');
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        console.log('Link text copied to clipboard:', text);
+      })
+      .catch((error) => {
+        alert('Error copying link text to clipboard:', error);
+      });
+  };
+
+  return (
+    <div className='pt-16 pb-10 sm:pt-16 sm:pb-16 lg:pb-16 md:h-[92vh] sm:ml-72'>
+      <div className="px-7 mx-auto flex-col">
+      <div className=' p-6 w-[500px] flex justiy-center items-center flex-col rounded-xl mx-auto'>
+        <h1 className='mb-12 text-gray-200 text-3xl'>Website Thumbnail Generator</h1>
+        
+        
+        <p className='text-gray-200 text-xl mb-4'>Insert website url: </p>
+        <input
+          type="text"
+          id="imagename"
+          className='mb-12 px-8 py-3 rounded-xl'
+          placeholder="Enter website name (e.g., google)"
+          value={websiteNameInput}
+          onChange={handleWebsiteNameInputChange}
+        />
+        <button id="btn" onClick={handleButtonClick} className='mb-12 px-8 py-4 bg-gray-400 rounded-xl'>
+          Generate Thumbnail
+        </button>
+        
+        </div>
+        <div className='bg-[#141414] p-6 w-[500px] flex justiy-center items-center flex-col rounded-xl mx-auto'>
+            <h1 className="text-gray-200 mb-5 text-xl text-center"><span className='text-gray-500 font-bold'>website name provided:</span><br/> {websiteName}</h1>
+            {imageUrl && (
+            <img
+                src={imageUrl}
+                alt="Website Thumbnail"
+                className='w-[400px] h-[200px] object-cover object-top rounded-xl'
+            />
+            )}
+            <button onClick={handleSaveButtonClick} className='mt-4 px-8 py-4 bg-gray-400 rounded-xl'>
+          Save Image
+        </button>
+        </div>
+        
+        <div className='text-gray-200 bg-[#141414] mt-4 p-6 w-[500px] flex justiy-center items-center flex-col rounded-xl mx-auto'>
+        <h1>List of Links</h1>
+        <ul>
+        {links.map((link, index) => (
+          <li key={index}>
+            <span onClick={() => copyToClipboard(link.title)} className='cursor-pointer hover:text-blue-200'>
+              {link.title}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+
+        
+      </div>
+    </div>
+  );
+};
+
+export default Functions;
